@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: primary-pwa-api
+    env: docker
+    repo: https://github.com/Israelhrm1995/primary-pwa-api
+    branch: main
+    plan: free
+    autoDeploy: true
+    envVars:
+      - key: JAVA_OPTS
+        value: "-Xmx512m"
+    buildCommand: ""  # Docker já gerencia o build
+    startCommand: ""  # Dockerfile define o ENTRYPOINT
