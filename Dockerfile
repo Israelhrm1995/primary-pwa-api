@@ -1,24 +1,23 @@
-# Etapa 1: Build com Maven
-FROM maven:3.9.6-eclipse-temurin-21 AS build
+# Usa imagem oficial com Java 21 pré-instalado
+FROM eclipse-temurin:21-jdk
+
+# Define diretório de trabalho
 WORKDIR /app
 
-# Copia os arquivos do projeto (exceto o .dockerignore)
+# Copia arquivos para dentro do container
 COPY . .
 
-# Executa o build do projeto
-RUN mvn clean package -DskipTests
+# Dá permissão de execução ao mvnw
+RUN chmod +x mvnw
 
-# Etapa 2: Runtime com Java 21
-FROM eclipse-temurin:21-jre
+# Faz o build do projeto
+RUN ./mvnw clean package -DskipTests
 
-# Define o diretório de trabalho no container final
-WORKDIR /app
+# Define a porta (Render injeta via variável $PORT)
+ENV PORT=8080
 
-# Copia o JAR gerado da etapa anterior
-COPY --from=build /app/target/*.jar app.jar
-
-# Expõe a porta padrão do Spring Boot (ajuste se necessário)
+# Expõe a porta para fora do container
 EXPOSE 8080
 
-# Comando para iniciar o aplicativo
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Comando para rodar o app
+CMD ["java", "-jar", "target/portalpdv-0.0.1-SNAPSHOT.jar"]
