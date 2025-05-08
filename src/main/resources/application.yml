@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: portalpdv
+
+  http:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+
+server:
+  port: ${PORT:8080}
+  address: 0.0.0.0
+
+logging:
+  level:
+    org.springframework: INFO
+    com.sankhya: DEBUG

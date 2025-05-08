@@ -1,12 +1,10 @@
 package com.sankhya.portalpdv.Controller;
 
-
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
@@ -15,13 +13,21 @@ public class ProxyController {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
+    /**
+     * Proxy para login XML
+     */
     @CrossOrigin
     @PostMapping("/api")
     public ResponseEntity<String> proxyLogin(HttpServletRequest request,
                                              @RequestBody String body,
-                                             @RequestParam String host) throws IOException {
+                                             @RequestParam String host) {
 
-        String targetUrl = "http://" + host + "/mge/service.sbr?serviceName=MobileLoginSP.login";
+        // ✅ Garantir que host comece com https:// ou http://
+        if (!host.startsWith("https://") && !host.startsWith("http://")) {
+            host = "https://" + host;
+        }
+
+        String targetUrl = host + "/mge/service.sbr?serviceName=MobileLoginSP.login";
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.TEXT_XML);
@@ -30,21 +36,29 @@ public class ProxyController {
         HttpEntity<String> entity = new HttpEntity<>(body, headers);
 
         try {
-            return restTemplate.exchange(targetUrl, HttpMethod.POST, entity, String.class);
+            ResponseEntity<String> response = restTemplate.exchange(targetUrl, HttpMethod.POST, entity, String.class);
+            return ResponseEntity.status(response.getStatusCode()).body(response.getBody());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("❌ Erro ao encaminhar para o ERP: " + e.getMessage());
         }
     }
 
+    /**
+     * Proxy para serviços JSON
+     */
     @CrossOrigin
     @PostMapping("/checkout")
     public ResponseEntity<String> proxyCheckout(HttpServletRequest request,
                                                 @RequestBody String body,
-                                                @RequestParam String host) throws IOException {
+                                                @RequestParam String host) {
+
+        if (!host.startsWith("https://") && !host.startsWith("http://")) {
+            host = "https://" + host;
+        }
 
         String queryString = Objects.toString(request.getQueryString(), "");
-        String targetUrl = "http://" + host + "/checkout/service.sbr?" + queryString;
+        String targetUrl = host + "/checkout/service.sbr?" + queryString;
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -53,7 +67,8 @@ public class ProxyController {
         HttpEntity<String> entity = new HttpEntity<>(body, headers);
 
         try {
-            return restTemplate.exchange(targetUrl, HttpMethod.POST, entity, String.class);
+            ResponseEntity<String> response = restTemplate.exchange(targetUrl, HttpMethod.POST, entity, String.class);
+            return ResponseEntity.status(response.getStatusCode()).body(response.getBody());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("❌ Erro ao encaminhar para o ERP: " + e.getMessage());
